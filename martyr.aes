@@ -1,4 +1,201 @@
 //	martyr.ars
 //
 //	Martyrs' Star Scenario Library
-//  Anacreon is Copyright (c) 2012 by Kronosaur Productions, LLC. All Rights Reserved.
+//  Anacreon is copyright (c) 2012 by Kronosaur Productions, LLC. All Rights Reserved.
+
+Library martyr.library
+	{
+	name: "Martyr's Star Scenario Library" 
+  }
+
+// Industry & Improvements ----------------------------------------------------
+
+Trait martyr.imperialStarport {
+	name: "imperial starport"
+	category: improvement
+	role: spaceport
+
+	maxTradeDist: { value:100.0 op:defaultValue }
+
+	minTechLevel: 5
+
+	designationOnly: true
+	workingConditions: 7
+
+	description: "An imperial starport is an upgraded spaceport that supports inter-empire trade. It also builds drones and fast aviso ships, ideal for protecting commerce on far-flung worlds."
+}
+// Units ----------------------------------------------------------------------
+
+ResourceType martyr.riotDrone
+	{
+	category: groundUnit
+	name: "riot drone squadron"
+	attackValue: 3
+	isCargo: true
+	mass: 10.0
+	halfLife: 3.0
+	elementCount: 5000
+
+	attack: { name:"microwave emitter" damage:3 type:direct range:0.0 area:0.1 }
+	defense: { armor:1 minArea:10.0 }
+
+	noRebellionDefection: true
+	secessionAdj: 0.9						//	Per 1000 brigades
+
+	production: {
+		workUnits: 500.0
+		inputs: ()
+		minTechLevel: 5
+		}
+	}
+  
+ResourceType martyr.avisoLamassu
+  {
+  //  Avisos allow a trading empire to maintain a far-flung colonial empire with patchy jumpbeacon coverage.
+  //  Avisos are fast, armed heavy transports which will enter space combat, but won't invade.
+  //  Possible uses include transporting riot drones to garrison remote planets
+  //  and raiding enemy worlds for loot (in conjunction with normal jumptransports)
+  //  Avisos are faster than gunships and more resilient than jumptransports, with powerful weapons.
+  
+	category: maneuveringUnit
+	name: "Lamassu-class aviso"
+	role: gunship
+	FTL: { type:warp speed:10.0 }
+	canLand: false
+	cargoSpace: 100.0						//	In kilotons
+	mass: 50.0
+	maxDeltaV: 1.0
+	scanner: 0.05
+	visibility: 0.3
+	halfLife: 8.0
+
+  attack: { name:"Shtorm repeater" count:1 damage:64 type:direct range:15.0 area:0.1 }
+	defense: { armor:80 }
+	unitsPerCell: 2
+
+	production: {
+		workUnits: 600.0
+		inputs: (
+			{ type:core.trillum amount:10.0 }
+			{ type:core.hexacarbide amount:20.0 }
+			{ type:core.chronimium amount:2.0 }
+			)
+		minTechLevel: 7
+		}
+}
+
+ResourceType martyr.avisoTuatha
+  {
+  
+	category: maneuveringUnit
+	name: "Tuatha-class aviso"
+	role: gunship
+	FTL: { type:ramjet speed:10.0 }
+	canLand: false
+	cargoSpace: 100.0						//	In kilotons
+	mass: 64.0
+	maxDeltaV: 1.0
+	scanner: 0.1
+	visibility: 0.3
+	halfLife: 8.0
+
+  attack: { name:"Trishula MIRV" count:3 damage:24 type:missile range:20.0 }
+	defense: { armor:128 }
+	unitsPerCell: 2
+
+	production: {
+		workUnits: 800.0
+		inputs: (
+			{ type:core.aetherium amount:8.0 }
+			{ type:core.hexacarbide amount:25.0 }
+			{ type:core.chronimium amount:2.0 }
+			)
+		minTechLevel: 7
+		}
+}
+
+// Designations ---------------------------------------------------------------
+
+Trait martyr.capitalTradeDesignation {
+	category: designation
+	name: "capital"
+	role: imperialCapital
+	inheritFrom: (core.capitalDesignationAttribute core.tradingHubAttribute)
+	
+	industry: (
+		{ type:martyr.imperialStarport alloc:max }
+
+		{ type:core.chronimiumProcessor alloc:demand }
+		{ type:core.hexacarbideFoundry alloc:demand }
+		{ type:core.trillumExtractor alloc:demand }
+
+		{ type:core.imperialAdministration alloc:demand }
+		{ type:core.consumerGoodsAutofac alloc:demand }
+		)
+
+	imageMedium: { type:constant
+		resource: core.designationIcons
+		pos: (0 1024)
+		size: (128 128)
+		}
+
+	imageSmall: { type:constant
+		resource: core.designationIconsSmall
+		pos: (0 384)
+		size: (48 48)
+		}
+
+	techLevelAdj: { value:7.0	op:min }
+	}
+  
+Trait martyr.sectorCapitalTradeDesignation {
+	category: designation
+	name: "sector capital"
+	role: sectorCapital
+	inheritFrom: (core.tradingHubAttribute)
+
+	minTechLevel: 5
+	requirements: (core.tradeAndEnterprise)
+	
+	industry: (
+		{ type:martyr.imperialStarport alloc:max }
+
+		{ type:core.chronimiumProcessor alloc:demand }
+		{ type:core.hexacarbideFoundry alloc:demand }
+		{ type:core.trillumExtractor alloc:demand }
+
+		{ type:core.sectorCapitalAdministration alloc:demand }
+		{ type:core.militiaBase alloc:fixed allocValue:10.0 }
+		{ type:core.consumerGoodsAutofac alloc:demand }
+		)
+
+	techLevelAdj: { value:5.0	op:min }
+
+	description: "A sector capital helps with the administration of the empire. Every imperial world must be within 250 light-years of the capital or a sector capital in order to participate in the imperial economy."
+
+	imageMedium: { type:constant
+		resource: core.designationIcons
+		pos: (0 1152)
+		size: (128 128)
+		}
+
+	imageSmall: { type:constant
+		resource: core.designationIconsSmall
+		pos: (0 432)
+		size: (48 48)
+		}
+}
+
+// Doctrines ---------------------------------------------------------------
+
+Trait martyr.tradeAndEnterprise
+	{
+	category: doctrine
+	name: "Trade & Enterprise"
+	inheritFrom: (core.sellsResourcesAttribute)
+
+	description: "Free trade makes an empire greater than the sum of its worlds. This doctrine seeks to promote and defend interstellar trade both within and across empires.\n\nChoose this doctrine if you wish to buy and sell resources and ships."
+
+	capitalType: martyr.capitalTradeDesignation
+	sectorCapitalType: martyr.sectorCapitalTradeDesignation
+}
